@@ -1081,7 +1081,7 @@ ndk::ScopedAStatus Vibrator::on(uint32_t timeoutMs, uint32_t effectIndex, const 
         if (mIsDual) {
             mHwApiDual->getOwtFreeSpace(&freeBytes);
             if (ch-> size() > freeBytes) {
-                ALOGE("Invalid OWT length in flip: Effect %d: %d > %d!", effectIndex,
+                ALOGE("Invalid OWT length in flip: Effect %d: %zu > %d!", effectIndex,
                       ch-> size(), freeBytes);
                 return ndk::ScopedAStatus::fromExceptionCode(EX_ILLEGAL_ARGUMENT);
             }
@@ -1619,11 +1619,15 @@ binder_status_t Vibrator::dump(int fd, const char **args, uint32_t numArgs) {
         verFile.close();
     }
 
+    dprintf(fd, "\n");
+
     mHwApiDef->debug(fd);
 
     dprintf(fd, "\n");
 
     mHwCalDef->debug(fd);
+
+    dprintf(fd, "\n");
 
     if (mIsDual) {
         mHwApiDual->debug(fd);
