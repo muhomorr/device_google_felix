@@ -1482,40 +1482,31 @@ binder_status_t Vibrator::dump(int fd, const char **args, uint32_t numArgs) {
     dprintf(fd, "  Redc: %.02f\n", mRedc);
 
     dprintf(fd, "  Voltage Levels:\n");
-    dprintf(fd, "     Tick Effect Min: %" PRIu32 " Max: %" PRIu32 "\n", mTickEffectVol[0],
+    dprintf(fd, "    Tick Effect Min: %" PRIu32 " Max: %" PRIu32 "\n", mTickEffectVol[0],
             mTickEffectVol[1]);
-    dprintf(fd, "     Click Effect Min: %" PRIu32 " Max: %" PRIu32 "\n", mClickEffectVol[0],
+    dprintf(fd, "    Click Effect Min: %" PRIu32 " Max: %" PRIu32 "\n", mClickEffectVol[0],
             mClickEffectVol[1]);
-    dprintf(fd, "     Long Effect Min: %" PRIu32 " Max: %" PRIu32 "\n", mLongEffectVol[0],
+    dprintf(fd, "    Long Effect Min: %" PRIu32 " Max: %" PRIu32 "\n", mLongEffectVol[0],
             mLongEffectVol[1]);
 
-    dprintf(fd, "  FF effect:\n");
-    dprintf(fd, "    Physical waveform:\n");
-    dprintf(fd, "==== Base ====\n\tId\tIndex\tt   ->\tt'\tBrake\ttrigger button\n");
     uint8_t effectId;
+    dprintf(fd, "  Scales\n");
+    dprintf(fd, "\tId\tMinScale\tMaxScale\n");
+    for (effectId = 0; effectId < WAVEFORM_MAX_PHYSICAL_INDEX; effectId++) {
+        dprintf(fd, "\t%d\t%d\t\t%d\n", effectId, mPrimitiveMinScale[effectId],
+            mPrimitiveMaxScale[effectId]);
+    }
+
+    dprintf(fd, "  Base FF effect:\n");
+    dprintf(fd, "    Physical waveform:\n");
+    dprintf(fd, "\tId\tIndex\tt   ->\tt'\tBrake\ttrigger button\n");
     for (effectId = 0; effectId < WAVEFORM_MAX_PHYSICAL_INDEX; effectId++) {
         dprintf(fd, "\t%d\t%d\t%d\t%d\t%d\t%X\n", mFfEffects[effectId].id,
                 mFfEffects[effectId].u.periodic.custom_data[1], mEffectDurations[effectId],
                 mFfEffects[effectId].replay.length, mEffectBrakingDurations[effectId],
                 mFfEffects[effectId].trigger.button);
     }
-    if (mIsDual) {
-        dprintf(fd, "==== Flip ====\n\tId\tIndex\tt   ->\tt'\tBrake\ttrigger button\n");
-        for (effectId = 0; effectId < WAVEFORM_MAX_PHYSICAL_INDEX; effectId++) {
-            dprintf(fd, "\t%d\t%d\t%d\t%d\t%d\t%X\n", mFfEffectsDual[effectId].id,
-                    mFfEffectsDual[effectId].u.periodic.custom_data[1], mEffectDurations[effectId],
-                    mFfEffectsDual[effectId].replay.length, mEffectBrakingDurations[effectId],
-                    mFfEffectsDual[effectId].trigger.button);
-        }
-    }
-
-    dprintf(fd, "==== Scales ====\n\tId\tMinScale\tMaxScale\n");
-    for (effectId = 0; effectId < WAVEFORM_MAX_PHYSICAL_INDEX; effectId++) {
-        dprintf(fd, "\t%d\t%d\t\t%d\n", effectId, mPrimitiveMinScale[effectId],
-            mPrimitiveMaxScale[effectId]);
-    }
-
-    dprintf(fd, "\nBase: OWT waveform:\n");
+    dprintf(fd, "    OWT waveform:\n");
     dprintf(fd, "\tId\tBytes\tData\tt\ttrigger button\n");
     for (effectId = WAVEFORM_MAX_PHYSICAL_INDEX; effectId < WAVEFORM_MAX_INDEX; effectId++) {
         uint32_t numBytes = mFfEffects[effectId].u.periodic.custom_len * 2;
@@ -1531,8 +1522,18 @@ binder_status_t Vibrator::dump(int fd, const char **args, uint32_t numArgs) {
         dprintf(fd, "\t%d\t%d\t{%s}\t%u\t%X\n", mFfEffects[effectId].id, numBytes, ss.str().c_str(),
                 mFfEffectsDual[effectId].replay.length, mFfEffects[effectId].trigger.button);
     }
+
     if (mIsDual) {
-        dprintf(fd, "Flip: OWT waveform:\n");
+        dprintf(fd, "  Flip FF effect:\n");
+        dprintf(fd, "    Physical waveform:\n");
+        dprintf(fd, "\tId\tIndex\tt   ->\tt'\tBrake\ttrigger button\n");
+        for (effectId = 0; effectId < WAVEFORM_MAX_PHYSICAL_INDEX; effectId++) {
+            dprintf(fd, "\t%d\t%d\t%d\t%d\t%d\t%X\n", mFfEffectsDual[effectId].id,
+                    mFfEffectsDual[effectId].u.periodic.custom_data[1], mEffectDurations[effectId],
+                    mFfEffectsDual[effectId].replay.length, mEffectBrakingDurations[effectId],
+                    mFfEffectsDual[effectId].trigger.button);
+        }
+        dprintf(fd, "    OWT waveform:\n");
         dprintf(fd, "\tId\tBytes\tData\tt\ttrigger button\n");
         for (effectId = WAVEFORM_MAX_PHYSICAL_INDEX; effectId < WAVEFORM_MAX_INDEX; effectId++) {
             uint32_t numBytes = mFfEffectsDual[effectId].u.periodic.custom_len * 2;
