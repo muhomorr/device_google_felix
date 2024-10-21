@@ -1554,70 +1554,55 @@ binder_status_t Vibrator::dump(int fd, const char **args, uint32_t numArgs) {
     dprintf(fd, "\n");
 
     dprintf(fd, "Versions:\n");
+    const std::vector<std::pair<std::string, std::string>> moduleFolderNames = {
+        {"cs40l26_core", "Haptics"}, {"cl_dsp_core", "DSP"}};
+    const std::string firmwareFolder = "/vendor/firmware/";
+    const std::string waveformName = "cs40l26.bin";
+    const std::array<std::string, 2> firmwareFileNames = {"cs40l26.wmfw", "cs40l26-calib.wmfw"};
+    const std::array<std::string, 4> tuningFileNames = {"cs40l26-svc.bin", "cs40l26-calib.bin",
+                                                        "cs40l26-dvl.bin", "cs40l26-dbc.bin"};
     std::ifstream verFile;
     const auto verBinFileMode = std::ifstream::in | std::ifstream::binary;
     std::string ver;
-    verFile.open("/sys/module/cs40l26_core/version");
-    if (verFile.is_open()) {
-        getline(verFile, ver);
-        dprintf(fd, "  Haptics Driver: %s\n", ver.c_str());
-        verFile.close();
+    for (const auto &[folder, logTag] : moduleFolderNames) {
+        verFile.open("/sys/module/" + folder + "/version");
+        if (verFile.is_open()) {
+            getline(verFile, ver);
+            dprintf(fd, "  %s Driver: %s\n", logTag.c_str(), ver.c_str());
+            verFile.close();
+        }
     }
-    verFile.open("/sys/module/cl_dsp_core/version");
-    if (verFile.is_open()) {
-        getline(verFile, ver);
-        dprintf(fd, "  DSP Driver: %s\n", ver.c_str());
-        verFile.close();
+    for (auto &name : firmwareFileNames) {
+        verFile.open(firmwareFolder + name, verBinFileMode);
+        if (verFile.is_open()) {
+            verFile.seekg(113);
+            dprintf(fd, "  %s: %d.%d.%d\n", name.c_str(), verFile.get(), verFile.get(),
+                    verFile.get());
+            verFile.close();
+        }
     }
-    verFile.open("/vendor/firmware/cs40l26.wmfw", verBinFileMode);
-    if (verFile.is_open()) {
-        verFile.seekg(113);
-        dprintf(fd, "  cs40l26.wmfw: %d.%d.%d\n", verFile.get(), verFile.get(), verFile.get());
-        verFile.close();
-    }
-    verFile.open("/vendor/firmware/cs40l26-calib.wmfw", verBinFileMode);
-    if (verFile.is_open()) {
-        verFile.seekg(113);
-        dprintf(fd, "  cs40l26-calib.wmfw: %d.%d.%d\n", verFile.get(), verFile.get(),
-                verFile.get());
-        verFile.close();
-    }
-    verFile.open("/vendor/firmware/cs40l26.bin", verBinFileMode);
+    verFile.open(firmwareFolder + waveformName, verBinFileMode);
     if (verFile.is_open()) {
         while (getline(verFile, ver)) {
             auto pos = ver.find("Date: ");
             if (pos != std::string::npos) {
                 ver = ver.substr(pos + 6, pos + 15);
-                dprintf(fd, "  cs40l26.bin: %s\n", ver.c_str());
+                dprintf(fd, "  %s: %s\n", waveformName.c_str(), ver.c_str());
                 break;
             }
         }
         verFile.close();
     }
-    verFile.open("/vendor/firmware/cs40l26-svc.bin", verBinFileMode);
-    if (verFile.is_open()) {
-        verFile.seekg(36);
-        getline(verFile, ver);
-        ver = ver.substr(ver.rfind('\\') + 1);
-        dprintf(fd, "  cs40l26-svc.bin: %s\n", ver.c_str());
-        verFile.close();
-    }
-    verFile.open("/vendor/firmware/cs40l26-calib.bin", verBinFileMode);
-    if (verFile.is_open()) {
-        verFile.seekg(36);
-        getline(verFile, ver);
-        ver = ver.substr(ver.rfind('\\') + 1);
-        dprintf(fd, "  cs40l26-calib.bin: %s\n", ver.c_str());
-        verFile.close();
-    }
-    verFile.open("/vendor/firmware/cs40l26-dvl.bin", verBinFileMode);
-    if (verFile.is_open()) {
-        verFile.seekg(36);
-        getline(verFile, ver);
-        ver = ver.substr(0, ver.find('\0') + 1);
-        ver = ver.substr(ver.rfind('\\') + 1);
-        dprintf(fd, "  cs40l26-dvl.bin: %s\n", ver.c_str());
-        verFile.close();
+    for (auto &name : tuningFileNames) {
+        verFile.open(firmwareFolder + name, verBinFileMode);
+        if (verFile.is_open()) {
+            verFile.seekg(36);
+            getline(verFile, ver);
+            ver = ver.substr(0, ver.find(".bin") + 4);
+            ver = ver.substr(ver.rfind('\\') + 1);
+            dprintf(fd, "  %s: %s\n", name.c_str(), ver.c_str());
+            verFile.close();
+        }
     }
 
     dprintf(fd, "\n");
