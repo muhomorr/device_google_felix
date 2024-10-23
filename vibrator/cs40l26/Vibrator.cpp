@@ -195,6 +195,8 @@ enum vibe_state {
     VIBE_STATE_ASP,
 };
 
+std::mutex mActiveId_mutex;  // protects mActiveId
+
 class DspMemChunk {
   private:
     std::unique_ptr<uint8_t[]> head;
@@ -1930,7 +1932,6 @@ uint32_t Vibrator::intensityToVolLevel(float intensity, uint32_t effectIndex) {
             volLevel = calc(intensity, mClickEffectVol);
             break;
     }
-
     // The waveform being played must fall within the allowable scale range
     if (effectIndex < WAVEFORM_MAX_INDEX) {
         if (volLevel > mPrimitiveMaxScale[effectIndex]) {
