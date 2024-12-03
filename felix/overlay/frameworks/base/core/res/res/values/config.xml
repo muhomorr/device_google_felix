@@ -192,6 +192,8 @@
     <!-- MMS user agent profile url -->
     <string name="config_mms_user_agent_profile_url" translatable="false">http://www.gstatic.com/android/sms/G9FPL.xml</string>
 
+    <!-- The max vibration strength allowed in audio haptic channels. -->
+    <item name="config_hapticChannelMaxVibrationAmplitude" format="float" type="dimen">0.39</item>
 
     <!-- Not allow to switch to higher refresh rate when display brightness setting is
          equal or less than this value -->
